@@ -1,184 +1,157 @@
-# TensorFlow.js
+# Platform Adapter for React Native
 
-TensorFlow.js is an open-source hardware-accelerated JavaScript library for
-training and deploying machine learning models.
+This package provides a TensorFlow.js platform adapter for react native. It
+provides GPU accelerated execution of TensorFlow.js supporting all major modes
+of tfjs usage, include:
+  - Support for both model inference and training
+  - GPU support with WebGL via expo-gl.
+  - Support for loading models pretrained models (tfjs-models) from the web.
+  - IOHandlers to support loading models from asyncStorage and models
+    that are compiled into the app bundle.
 
+## Setting up a React Native app with tfjs-react-native
 
-**Develop ML in the Browser** <br/>
-Use flexible and intuitive APIs to build models from scratch using the low-level
-JavaScript linear algebra library or the high-level layers API.
+These instructions (and this library) **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) development**.
 
-**Develop ML in Node.js** <br/>
-Execute native TensorFlow with the same TensorFlow.js API under the Node.js
-runtime.
+## Expo compatibility
 
-**Run Existing models** <br/>
-Use TensorFlow.js model converters to run pre-existing TensorFlow models right
-in the browser.
+This library relies on [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl) and [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp). Thus you must use a version of React Native that is supported by Expo.
 
-**Retrain Existing models** <br/>
-Retrain pre-existing ML models using sensor data connected to the browser or
-other client-side data.
+Some parts of tfjs-react-native are not compatible with _managed expo apps_. You must use the bare workflow (or just plain react native) if you want to use the following functionality:
+ - Loading local models using [bundleResourceIO](https://js.tensorflow.org/api_react_native/latest/#bundleResourceIO). You can instead load models from a webserver.
 
-## About this repo
+### Step 1. Create your react native app.
 
-This repository contains the logic and scripts that combine
-several packages.
+You can use the [React Native CLI](https://facebook.github.io/react-native/docs/getting-started) or [Expo](https://expo.io/).
 
-APIs:
-- [TensorFlow.js Core](/tfjs-core),
-  a flexible low-level API for neural networks and numerical computation.
-- [TensorFlow.js Layers](/tfjs-layers),
-  a high-level API which implements functionality similar to
-  [Keras](https://keras.io/).
-- [TensorFlow.js Data](/tfjs-data),
-  a simple API to load and prepare data analogous to
-  [tf.data](https://www.tensorflow.org/guide/datasets).
-- [TensorFlow.js Converter](/tfjs-converter),
-  tools to import a TensorFlow SavedModel to TensorFlow.js
-- [TensorFlow.js Vis](/tfjs-vis),
-  in-browser visualization for TensorFlow.js models
-- [TensorFlow.js AutoML](/tfjs-automl),
-  Set of APIs to load and run models produced by
-  [AutoML Edge](https://cloud.google.com/vision/automl/docs/edge-quickstart).
+On macOS (to develop iOS applications) You will also need to use CocoaPods to install these dependencies.
 
+### Step 2: Install dependencies
 
-Backends/Platforms:
-- [TensorFlow.js CPU Backend](/tfjs-backend-cpu), pure-JS backend for Node.js and the browser.
-- [TensorFlow.js WebGL Backend](/tfjs-backend-webgl), WebGL backend for the browser.
-- [TensorFlow.js WASM Backend](/tfjs-backend-wasm), WebAssembly backend for the browser.
-- [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend for the browser.
-- [TensorFlow.js Node](/tfjs-node), Node.js platform via TensorFlow C++ adapter.
-- [TensorFlow.js React Native](/tfjs-react-native), React Native platform via expo-gl adapter.
+Note that if you are using in a managed expo app the install instructions may be different.
 
-If you care about bundle size, you can import those packages individually.
+  - Install and configure [react-native-unimodules](https://github.com/unimodules/react-native-unimodules) (can be skipped if in an expo app)
+  - Install and configure [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
+  - Install and configure [expo-camera](https://www.npmjs.com/package/expo-camera)
+  - Install and configure [async-storage](https://github.com/react-native-community/async-storage)
+  - Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
+  - **Install @tensorflow/tfjs** - `npm install @tensorflow/tfjs`
+  - **Install @tensorflow/tfjs-react-native** - `npm install @tensorflow/tfjs-react-native`
 
-If you are looking for Node.js support, check out the [TensorFlow.js Node directory](/tfjs-node).
+If you encounter dependency conflict error in npm install, you can either:
+- Follow the instructions to use `--force` or `--legacy-peer-deps`
+- Or use yarn to install
 
-## Examples
+> After this point, if you are using Xcode to build for ios, you should use a ‘.workspace’ file instead of the ‘.xcodeproj’
 
-Check out our
-[examples repository](https://github.com/tensorflow/tfjs-examples)
-and our [tutorials](https://js.tensorflow.org/tutorials/).
+### Step 3: Configure [Metro](https://facebook.github.io/metro/)
 
-## Gallery
+This step is only needed if you want to use the [bundleResourceIO](https://js.tensorflow.org/api_react_native/latest/#bundleResourceIO) loader.
 
-Be sure to check out [the gallery](GALLERY.md) of all projects related to TensorFlow.js.
+Edit your `metro.config.js` to look like the following. Changes are noted in
+the comments below.
 
-## Pre-trained models
-
-Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pre-trained models
-on NPM.
-
-## Benchmarks
-
-* [Local benchmark tool](https://tfjs-benchmarks.web.app/). Use this webpage tool to collect the performance related metrics (speed, memory, etc) of TensorFlow.js models and kernels **on your local device** with CPU, WebGL or WASM backends. You can benchmark custom models by following this [guide](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/local-benchmark/README.md).
-* [Multi-device benchmark tool](https://github.com/tensorflow/tfjs/tree/master/e2e/benchmarks/browserstack-benchmark/README.md). Use this tool to collect the same performance related metrics **on a collection of remote devices**.
-
-## Getting started
-
-There are two main ways to get TensorFlow.js in your JavaScript project:
-via <a href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_JavaScript_within_a_webpage" target="_blank">script tags</a> <strong>or</strong> by installing it from <a href="https://www.npmjs.com/" target="_blank">NPM</a>
-and using a build tool like <a href="https://parceljs.org/" target="_blank">Parcel</a>,
-<a href="https://webpack.js.org/" target="_blank">WebPack</a>, or <a href="https://rollupjs.org/guide/en" target="_blank">Rollup</a>.
-
-### via Script Tag
-
-Add the following code to an HTML file:
-
-```html
-<html>
-  <head>
-    <!-- Load TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
-
-
-    <!-- Place your code in the script tag below. You can also use an external .js file -->
-    <script>
-      // Notice there is no 'import' statement. 'tf' is available on the index-page
-      // because of the script tag above.
-
-      // Define a model for linear regression.
-      const model = tf.sequential();
-      model.add(tf.layers.dense({units: 1, inputShape: [1]}));
-
-      // Prepare the model for training: Specify the loss and the optimizer.
-      model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
-
-      // Generate some synthetic data for training.
-      const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
-      const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]);
-
-      // Train the model using the data.
-      model.fit(xs, ys).then(() => {
-        // Use the model to do inference on a data point the model hasn't seen before:
-        // Open the browser devtools to see the output
-        model.predict(tf.tensor2d([5], [1, 1])).print();
-      });
-    </script>
-  </head>
-
-  <body>
-  </body>
-</html>
+```js
+const { getDefaultConfig } = require('metro-config');
+module.exports = (async () => {
+  const defaultConfig = await getDefaultConfig();
+  const { assetExts } = defaultConfig.resolver;
+  return {
+    resolver: {
+      // Add bin to assetExts
+      assetExts: [...assetExts, 'bin'],
+    }
+  };
+})();
 ```
 
-Open up that HTML file in your browser, and the code should run!
+### Step 4: Test that it is working
 
-### via NPM
+Before using tfjs in a react native app, you need to call `tf.ready()` and wait for it to complete. This is an **async function** so you might want to do this in a `componentDidMount` or before the app is rendered.
 
-Add TensorFlow.js to your project using <a href="https://yarnpkg.com/en/" target="_blank">yarn</a> <em>or</em> <a href="https://docs.npmjs.com/cli/npm" target="_blank">npm</a>. <b>Note:</b> Because
-we use ES2017 syntax (such as `import`), this workflow assumes you are using a modern browser or a bundler/transpiler
-to convert your code to something older browsers understand. See our
-<a href='https://github.com/tensorflow/tfjs-examples' target="_blank">examples</a>
-to see how we use <a href="https://parceljs.org/" target="_blank">Parcel</a> to build
-our code. However, you are free to use any build tool that you prefer.
-
+The example below uses a flag in the App state to indicate that TensorFlow is ready.
 
 
 ```js
 import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-react-native';
 
-// Define a model for linear regression.
-const model = tf.sequential();
-model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+export class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isTfReady: false,
+    };
+  }
 
-// Prepare the model for training: Specify the loss and the optimizer.
-model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+  async componentDidMount() {
+    // Wait for tf to be ready.
+    await tf.ready();
+    // Signal to the app that tensorflow.js can now be used.
+    this.setState({
+      isTfReady: true,
+    });
+  }
 
-// Generate some synthetic data for training.
-const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
-const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]);
 
-// Train the model using the data.
-model.fit(xs, ys).then(() => {
-  // Use the model to do inference on a data point the model hasn't seen before:
-  model.predict(tf.tensor2d([5], [1, 1])).print();
-});
+  render() {
+    //
+  }
+}
 ```
 
-See our <a href="https://js.tensorflow.org/tutorials/" target="_blank">tutorials</a>, <a href="https://github.com/tensorflow/tfjs-examples" target="_blank">examples</a>
-and <a href="https://js.tensorflow.org/api/latest/">documentation</a> for more details.
+If you use expo and encounter a build failure when running `npm run web` due to
+`You may need an appropriate loader to handle this file type...` error, follow
+the steps below to make expo correctly transpile tfjs packages:
 
-## Importing pre-trained models
+- Run: `expo customize:web`
+  - Use the space key to select the `webpack.config.js` entry, then press "enter".
+  - This will create a bare-minimum `webpack.config.js` file.
+- Edit the `webpack.config.js` file as follows:
 
-We support porting pre-trained models from:
-- [TensorFlow SavedModel](https://www.tensorflow.org/js/tutorials/conversion/import_saved_model)
-- [Keras](https://js.tensorflow.org/tutorials/import-keras.html)
+```
+const createExpoWebpackConfigAsync = require('@expo/webpack-config');
 
-## Various ops supported in different backends
+module.exports = async function(env, argv) {
+  const config = await createExpoWebpackConfigAsync(
+      {
+        ...env,
+        babel: {
+          dangerouslyAddModulePathsToTranspile: [
+            // Ensure that all packages starting with @tensorflow are
+            // transpiled.
+            '@tensorflow',
+          ],
+        },
+      },
+      argv);
+  return config;
+};
+```
 
-Please refer below :
-- [TFJS Ops Matrix](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0)
+You can take a look at [`integration_rn59/App.tsx`](integration_rn59/App.tsx) for an example of what using tfjs-react-native looks like. In future we will add an example to the [tensorflow/tfjs-examples](https://github.com/tensorflow/tfjs-examples) repository.
+The [Webcam demo folder](integration_rn59/components/webcam) has an example of a style transfer app.
 
-## Find out more
+![style transfer app initial screen](images/rn-styletransfer_1.jpg)
+![style transfer app initial screen](images/rn-styletransfer_2.jpg)
+![style transfer app initial screen](images/rn-styletransfer_3.jpg)
+![style transfer app initial screen](images/rn-styletransfer_4.jpg)
 
-[TensorFlow.js](https://js.tensorflow.org) is a part of the
-[TensorFlow](https://www.tensorflow.org) ecosystem. For more info:
-- For help from the community, use the `tfjs` tag on the [TensorFlow Forum](https://discuss.tensorflow.org/tag/tfjs).
-- [TensorFlow.js Website](https://js.tensorflow.org)
-- [Tutorials](https://js.tensorflow.org/tutorials)
-- [API reference](https://js.tensorflow.org/api/latest/)
-- [TensorFlow.js Blog](https://blog.tensorflow.org/search?label=TensorFlow.js)
 
-Thanks, <a href="https://www.browserstack.com/">BrowserStack</a>, for providing testing support.
+## API Docs
+
+[API docs are available here](https://js.tensorflow.org/api_react_native/latest/)
+
+## Compatibility with TFJS models
+
+Many [tfjs-models](https://github.com/tensorflow/tfjs-models) use web APIs for rendering or input, these are not generally compatible with React Native, to use them you generally need to **feed a tensor** into the model and do any rendering of the model output with react native components. If there is no API for passing a tensor into a [tfjs-model](https://github.com/tensorflow/tfjs-models), feel free to file a GitHub issue.
+
+## Debugging and reporting errors
+
+When reporting bugs with tfjs-react-native please include the following information:
+
+  - Is the app created using expo? If so is it a managed or bare app?
+  - Which version of react native and the dependencies in the install instructions above are you using?
+  - What device(s) are you running on? Note that not all simulators support webgl and thus may not work with tfjs-react-native.
+  - What error messages are you seeing? Are there any relevant messages [in the device logs](https://reactnative.dev/docs/debugging#accessing-console-logs)?
+  - How could this bug be reproduced? Is there an example repo we can use to replicate the issue?
